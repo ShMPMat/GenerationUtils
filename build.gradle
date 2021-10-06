@@ -1,0 +1,13 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+}
+apply plugin: 'idea'
+apply plugin: 'java'
+
+sourceSets {
+    main.kotlin.srcDirs += 'src/'
+}
+
+repositories {
+    mavenCentral()
+}
