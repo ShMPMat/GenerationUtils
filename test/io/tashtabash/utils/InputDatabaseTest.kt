@@ -4,8 +4,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.file.Path
 import java.util.Collections
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 
 class InputDatabaseTest {
@@ -50,6 +53,28 @@ class InputDatabaseTest {
         assertEquals("Entry One  Continued line", results[0])
         assertEquals("Entry Two", results[1])
         assertEquals("Entry Three  Smth  Content", results[2])
+    }
+
+    @Test
+    fun `Reads resource from a jar`() {
+        val jarFile = File(tempDir.toFile(), "test.jar")
+        val resourcePathInsideJar = "data/db.txt"
+
+        ZipOutputStream(FileOutputStream(jarFile)).use { zip ->
+            val entry = ZipEntry(resourcePathInsideJar)
+            zip.putNextEntry(entry)
+            val content = "-EntryFromJar\n Line Two"
+            zip.write(content.toByteArray())
+            zip.closeEntry()
+        }
+
+        val fileUri = jarFile.toURI()
+        val jarUrlString = "jar:$fileUri!/$resourcePathInsideJar"
+        val results = InputDatabase(jarUrlString)
+            .readLines()
+
+        assertEquals(1, results.size)
+        assertEquals("EntryFromJar  Line Two", results[0])
     }
 
     @Test

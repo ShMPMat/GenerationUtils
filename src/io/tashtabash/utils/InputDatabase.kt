@@ -1,20 +1,22 @@
 package io.tashtabash.utils
 
 import java.io.BufferedReader
-import java.io.FileReader
+import java.io.File
 import java.io.IOException
+import java.lang.AutoCloseable
+import java.net.URI
 import java.net.URL
 import java.util.*
 
-// I have a gradle kotlin project with dependencies which I also control. Each of them have a resource txt file with the same name. How do I access all of them at runtime?
-class InputDatabase(private val paths: List<String>) {
+
+class InputDatabase(private val paths: List<String>) : AutoCloseable {
     private var readerIndex = 0
     private lateinit var bufferedReader: BufferedReader
     private var lastLine: String? = null
 
     init {
         if (paths.isNotEmpty()) {
-            bufferedReader = BufferedReader(FileReader(paths[readerIndex]))
+            bufferedReader = createReader(paths[readerIndex])
 
             lastLine = bufferedReader.readLine()
             while ((lastLine != null || nextReader()) && doSkipLine(lastLine!!))
@@ -23,7 +25,19 @@ class InputDatabase(private val paths: List<String>) {
     }
 
     constructor(path: String) : this(listOf(path))
-    constructor(urls: Enumeration<URL>) : this(urls.toList().map { it.path })
+    constructor(urls: Enumeration<URL>) : this(urls.toList().map { it.toString() })
+
+    private fun createReader(path: String): BufferedReader {
+        val url = if (path.contains(":/"))
+            URI.create(path).toURL()
+        else
+            File(path).toURI().toURL()
+
+        val connection = url.openConnection()
+        connection.useCaches = false // Otherwise the connections stays open after the file is read
+
+        return connection.getInputStream().bufferedReader()
+    }
 
     private fun doSkipLine(string: String) = string.isBlank() || string[0] == '/'
 
@@ -34,7 +48,7 @@ class InputDatabase(private val paths: List<String>) {
         if (readerIndex >= paths.size)
             return false
 
-        bufferedReader = BufferedReader(FileReader(paths[readerIndex]))
+        bufferedReader = createReader(paths[readerIndex])
 
         return true
     }
@@ -79,5 +93,9 @@ class InputDatabase(private val paths: List<String>) {
             line = readLine()
         }
         return lines
+    }
+
+    override fun close() {
+        bufferedReader.close()
     }
 }
