@@ -6,8 +6,18 @@ apply plugin: 'java'
 
 sourceSets {
     main.kotlin.srcDirs += 'src/'
+    test.kotlin.srcDirs += 'test/'
 }
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
+
+test {
+    useJUnitPlatform()
 }

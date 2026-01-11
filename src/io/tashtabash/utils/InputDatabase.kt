@@ -6,7 +6,7 @@ import java.io.IOException
 import java.net.URL
 import java.util.*
 
-
+// I have a gradle kotlin project with dependencies which I also control. Each of them have a resource txt file with the same name. How do I access all of them at runtime?
 class InputDatabase(private val paths: List<String>) {
     private var readerIndex = 0
     private lateinit var bufferedReader: BufferedReader
@@ -28,6 +28,7 @@ class InputDatabase(private val paths: List<String>) {
     private fun doSkipLine(string: String) = string.isBlank() || string[0] == '/'
 
     private fun nextReader(): Boolean {
+        bufferedReader.close()
         readerIndex++
 
         if (readerIndex >= paths.size)
@@ -43,8 +44,7 @@ class InputDatabase(private val paths: List<String>) {
             val line = StringBuilder(wholeLine.drop(1))
 
             while (true) {
-                var newLine: String?
-                newLine = try {
+                val newLine = try {
                     bufferedReader.readLine()
                 } catch (e: IOException) {
                     System.err.println(e.toString())
